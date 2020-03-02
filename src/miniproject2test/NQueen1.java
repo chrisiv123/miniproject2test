@@ -1,7 +1,7 @@
 package miniproject2test;
 import java.util.ArrayList;
-import java.util.Random;
 
+//
 public class NQueen1
 {
     private static final int START_SIZE = 75;                    // Population size at start.
@@ -225,14 +225,7 @@ public class NQueen1
         
         int crossPoint1 = 4;
         int crossPoint2 = 5;
-        
-       /* if(crossPoint2 < crossPoint1){
-            j = crossPoint1;
-            crossPoint1 = crossPoint2;
-            crossPoint2 = j;
-        }
-        */
-        ////// this should be changed
+
 
         // Copy Parent genes to offspring.
         for(int i = 0; i < MAX_LENGTH; i++)
