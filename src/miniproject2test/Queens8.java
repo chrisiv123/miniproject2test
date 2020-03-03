@@ -2,76 +2,41 @@ package miniproject2test;
 import java.util.ArrayList;
 
 //
-public class NQueen1
+public class Queens8
 {
-    private static final int START_SIZE = 100;                    // Population size at start.
-    private static final int MAX_EraS = 1000;                  // Arbitrary number of test cycles.
-    private static final double MATING_PROBABILITY = 0.7;        // Probability of two chromosomes mating. Range: 0.0 < MATING_PROBABILITY < 1.0
-    ///////////////////
-    private static final double MUTATION_RATE = 0.05;           // Mutation Rate. Range: 0.0 < MUTATION_RATE < 1.0
-    private static final int MIN_SELECT = 10;                    // Minimum parents allowed for selection.
-    private static final int MAX_SELECT = 50;                    // Maximum parents allowed for selection. Range: MIN_SELECT < MAX_SELECT < START_SIZE
-    private static final int OFFSPRING_PER_GENERATION = 20;      // New offspring created per generation. Range: 0 < OFFSPRING_PER_GENERATION < MAX_SELECT.
-    private static final int MINIMUM_SHUFFLES = 8;               // For randomizing starting chromosomes
+    private static final int START_POP = 100;
+    private static final double MATING_CHANCE = 0.5;
+    private static final double MUTATION_RATE = 0.05;
+    
+    private static final int MIN_SELECT = 10;
+    private static final int MAX_SELECT = 50;
+    private static final int OFFSPRING_PER_GENERATION = 20;
+    private static final int MINIMUM_SHUFFLES = 8;
     private static final int MAXIMUM_SHUFFLES = 20;
  
    
     private static int Era = 0;
     private static int Children = 0;
-    private static int nextMutation = 0;                         // For scheduling mutations.
+    private static int nextMutation = 0;
     private static int mutations = 0;
 
     private static ArrayList<Chromosome> population = new ArrayList<Chromosome>();
-    
-    
-    
-    //////////////// running the alg
-    private static void algorithm()
-    {	
-    	mutations = 0;
-        nextMutation = Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
-        int PopulationSize = 0;
-        Chromosome DNA = null;
-        boolean Solution = false;
-        initializeChromosomes();
-        while(!Solution)
+    private static void initializeChromosomes()
+    {
+        int shuffles = 0;
+        Chromosome newChromo = null;
+        int chromoIndex = 0;
+        for(int i = 0; i < START_POP; i++)
         {
-            PopulationSize = population.size();
-            for(int i = 0; i < PopulationSize; i++)
-            {
-                DNA = population.get(i);
-                if((DNA.conflicts() == 0)){
-                    Solution = true;
-                }
-            }            
-            SetFitness();            
-            Selection();            
-            mating();
-            Reset();
-            Era++;
-           // current Era
-            System.out.println("Era: " + Era);
-            
+            newChromo = new Chromosome();
+            population.add(newChromo);
+            chromoIndex = population.indexOf(newChromo);
+            shuffles = Rand.getRandomNumber(MINIMUM_SHUFFLES, MAXIMUM_SHUFFLES);
+            exchangeMutation(chromoIndex, shuffles);
+            population.get(chromoIndex).computeConflicts();
         }
-        // solution found
-        System.out.println("Finished!");
-              
-            PopulationSize = population.size();
-            for(int i = 0; i < PopulationSize; i++)
-            {
-                DNA = population.get(i);
-                if(DNA.conflicts() == 0){
-                    PrintSolution(DNA);
-                }
-            }
-        // statistics 
-        System.out.println(DNA.fitness()+ " fitness");
-        System.out.println( Era + " Eras.");
-        System.out.println( mutations + " Mutations in " + Children + " Children");
-        
         return;
     }
-    
     //fitness function     
     private static void SetFitness()
     {        
@@ -147,7 +112,7 @@ public class NQueen1
         {
             parentA = chooseParent();
             getRand = Rand.getRandomNumber(0, 100);
-            if(getRand <= MATING_PROBABILITY * 100){
+            if(getRand <= MATING_CHANCE * 100){
                 parentB = chooseParent();
                 Chromosome1 = new Chromosome();
                 Chromosome2 = new Chromosome();
@@ -364,22 +329,56 @@ public class NQueen1
         return winner;
     }
     
-    private static void initializeChromosomes()
-    {
-        int shuffles = 0;
-        Chromosome newChromo = null;
-        int chromoIndex = 0;
-        for(int i = 0; i < START_SIZE; i++)
+
+    
+    // running the alg
+    private static void algorithm()
+    {	
+    	mutations = 0;
+        nextMutation = Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
+        int PopulationSize = 0;
+        Chromosome DNA = null;
+        boolean Solution = false;
+        initializeChromosomes();
+        while(!Solution)
         {
-            newChromo = new Chromosome();
-            population.add(newChromo);
-            chromoIndex = population.indexOf(newChromo);
-            shuffles = Rand.getRandomNumber(MINIMUM_SHUFFLES, MAXIMUM_SHUFFLES);
-            exchangeMutation(chromoIndex, shuffles);
-            population.get(chromoIndex).computeConflicts();
+            PopulationSize = population.size();
+            for(int i = 0; i < PopulationSize; i++)
+            {
+                DNA = population.get(i);
+                if((DNA.conflicts() == 0)){
+                    Solution = true;
+                }
+            }            
+            SetFitness();            
+            Selection();            
+            mating();
+            Reset();
+            Era++;
+           // current Era
+            System.out.println("Era: " + Era);
+            
         }
+        // solution found
+        System.out.println("Finished!");
+              
+            PopulationSize = population.size();
+            for(int i = 0; i < PopulationSize; i++)
+            {
+                DNA = population.get(i);
+                if(DNA.conflicts() == 0){
+                    PrintSolution(DNA);
+                }
+            }
+        // statistics 
+        System.out.println(DNA.fitness()+ " fitness");
+        System.out.println( Era + " Eras.");
+        System.out.println( mutations + " Mutations in " + Children + " Children");
+        
         return;
     }
+    
+    
     public static void main(String[] args)
     {
        algorithm();
