@@ -9,7 +9,7 @@ public class Rand {
         return (int)Math.round((high - low) * new Random().nextDouble() + low);
     }
     
-    static int getExclusiveRandomNumber(final int high, final int except)
+    static int getExclusiveRandomNumber(final int high, final int arr)
     {
         boolean done = false;
         int getRand = 0;
@@ -17,14 +17,14 @@ public class Rand {
         while(!done)
         {
             getRand = new Random().nextInt(high);
-            if(getRand != except){
+            if(getRand != arr){
                 done = true;
             }
         }
         return getRand;
     }
     
-    static int getRandomNumber(int low, int high, int[] except)
+    static int getRandomNumber(int low, int high, int[] arr)
     {
         boolean done = false;
         int getRand = 0;
@@ -34,9 +34,9 @@ public class Rand {
             {
                 done = true;
                 getRand = (int)Math.round((high - low) * new Random().nextDouble() + low);
-                for(int i = 0; i < except.length; i++)
+                for(int i = 0; i < arr.length; i++)
                 {
-                    if(getRand == except[i]){
+                    if(getRand == arr[i]){
                         done = false;
                     }
                 } // i

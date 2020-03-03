@@ -6,7 +6,7 @@ public class Queens8
 {
     private static final int START_POP = 100;
     private static final double MATING_CHANCE = 0.5;
-    private static final double MUTATION_RATE = 0.05;
+    private static final double queenMutation_RATE = 0.05;
     
     private static final int MIN_SELECT = 10;
     private static final int MAX_SELECT = 50;
@@ -17,8 +17,8 @@ public class Queens8
    
     private static int Era = 0;
     private static int Children = 0;
-    private static int nextMutation = 0;
-    private static int mutations = 0;
+    private static int nextqueenMutation = 0;
+    private static int queenMutations = 0;
 
     private static ArrayList<Chromosome> population = new ArrayList<Chromosome>();
     private static void initializeChromosomes()
@@ -32,13 +32,13 @@ public class Queens8
             population.add(newChromo);
             chromoIndex = population.indexOf(newChromo);
             shuffles = Rand.getRandomNumber(MINIMUM_SHUFFLES, MAXIMUM_SHUFFLES);
-            exchangeMutation(chromoIndex, shuffles);
+            exchangequeenMutation(chromoIndex, shuffles);
             population.get(chromoIndex).computeConflicts();
         }
         return;
     }
     //fitness function     
-    private static void SetFitness()
+    private static void queenFitness()
     {        
         Chromosome DNA = null;
         double HighScore = 0, LowScore = 0;
@@ -53,7 +53,7 @@ public class Queens8
         return;
     }
     
-    private static void Selection()
+    private static void queenSelection()
     {
         int q = 0, PopulationSize = population.size(), maximumToSelect = Rand.getRandomNumber(MIN_SELECT, MAX_SELECT);
         double GTotal = 0.0, CTotal = 0.0, Spin = 0.0;
@@ -120,24 +120,24 @@ public class Queens8
                 newIndex1 = population.indexOf(Chromosome1);
                 population.add(Chromosome2);
                 newIndex2 = population.indexOf(Chromosome2);
-                Crossover(parentA, parentB, newIndex1, newIndex2);
-                if(Children - 1 == nextMutation){
-                    exchangeMutation(newIndex1, 1);
-                }else if(Children == nextMutation){
-                    exchangeMutation(newIndex2, 1);
+                queenCrossover(parentA, parentB, newIndex1, newIndex2);
+                if(Children - 1 == nextqueenMutation){
+                    exchangequeenMutation(newIndex1, 1);
+                }else if(Children == nextqueenMutation){
+                    exchangequeenMutation(newIndex2, 1);
                 }
                 population.get(newIndex1).computeConflicts();
                 population.get(newIndex2).computeConflicts();
                 Children += 2;
-                if(Children % (int)Math.round(1.0 / MUTATION_RATE) == 0){
-                    nextMutation = Children + Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
+                if(Children % (int)Math.round(1.0 / queenMutation_RATE) == 0){
+                    nextqueenMutation = Children + Rand.getRandomNumber(0, (int)Math.round(1.0 / queenMutation_RATE));
                 }
             }
         } 
         return;
     }
     
-    private static void Crossover(int chromA, int chromB, int child1, int child2)
+    private static void queenCrossover(int chromA, int chromB, int child1, int child2)
     {
         int j = 0, item1 = 0, item2 = 0, pos1 = 0, pos2 = 0;
         Chromosome DNA = population.get(chromA);
@@ -183,7 +183,7 @@ public class Queens8
         return;
     }
 
-    private static void exchangeMutation(final int index, final int exchanges)
+    private static void exchangequeenMutation(final int index, final int exchanges)
     {
         int i =0 , tempData = 0, gene1 = 0, gene2 = 0;
         Chromosome DNA = null;
@@ -201,7 +201,7 @@ public class Queens8
             }
             i++;
         }
-        mutations++;
+        queenMutations++;
         return;
     }
     private static int chooseParent()
@@ -334,8 +334,8 @@ public class Queens8
     // running the alg
     private static void algorithm()
     {	
-    	mutations = 0;
-        nextMutation = Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
+    	queenMutations = 0;
+        nextqueenMutation = Rand.getRandomNumber(0, (int)Math.round(1.0 / queenMutation_RATE));
         int PopulationSize = 0;
         Chromosome DNA = null;
         boolean Solution = false;
@@ -350,8 +350,8 @@ public class Queens8
                     Solution = true;
                 }
             }            
-            SetFitness();            
-            Selection();            
+            queenFitness();            
+            queenSelection();            
             mating();
             Reset();
             Era++;
@@ -373,7 +373,7 @@ public class Queens8
         // statistics 
         System.out.println(DNA.fitness()+ " fitness");
         System.out.println( Era + " Eras.");
-        System.out.println( mutations + " Mutations in " + Children + " Children");
+        System.out.println( queenMutations + " Mutations in " + Children + " Children");
         
         return;
     }
