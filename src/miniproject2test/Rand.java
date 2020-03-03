@@ -21,7 +21,6 @@ public class Rand {
                 done = true;
             }
         }
-
         return getRand;
     }
     

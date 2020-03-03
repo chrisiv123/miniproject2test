@@ -86,7 +86,6 @@ class Chromosome
         int dx[] = new int[] {-1, 1, -1, 1};
         int dy[] = new int[] {-1, 1, 1, -1};
         boolean done = false;
-
         for(int i = 0; i < BOARD; i++)
         {
             for(int j = 0; j < BOARD; j++)
