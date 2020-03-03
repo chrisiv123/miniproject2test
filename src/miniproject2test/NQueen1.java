@@ -4,21 +4,20 @@ import java.util.ArrayList;
 //
 public class NQueen1
 {
-    private static final int START_SIZE = 75;                    // Population size at start.
-    private static final int MAX_EPOCHS = 1000;                  // Arbitrary number of test cycles.
+    private static final int START_SIZE = 100;                    // Population size at start.
+    private static final int MAX_EraS = 1000;                  // Arbitrary number of test cycles.
     private static final double MATING_PROBABILITY = 0.7;        // Probability of two chromosomes mating. Range: 0.0 < MATING_PROBABILITY < 1.0
+    ///////////////////
     private static final double MUTATION_RATE = 0.05;           // Mutation Rate. Range: 0.0 < MUTATION_RATE < 1.0
     private static final int MIN_SELECT = 10;                    // Minimum parents allowed for selection.
     private static final int MAX_SELECT = 50;                    // Maximum parents allowed for selection. Range: MIN_SELECT < MAX_SELECT < START_SIZE
     private static final int OFFSPRING_PER_GENERATION = 20;      // New offspring created per generation. Range: 0 < OFFSPRING_PER_GENERATION < MAX_SELECT.
     private static final int MINIMUM_SHUFFLES = 8;               // For randomizing starting chromosomes
     private static final int MAXIMUM_SHUFFLES = 20;
-    private static final int PBC_MAX = 4;                        // Maximum Position-Based Crossover points. Range: 0 < PBC_MAX < 8 (> 8 isn't good).
-    
-    private static final int MAX_LENGTH = 8;                    // chess board width.
-
-    private static int epoch = 0;
-    private static int childCount = 0;
+ 
+   
+    private static int Era = 0;
+    private static int Children = 0;
     private static int nextMutation = 0;                         // For scheduling mutations.
     private static int mutations = 0;
 
@@ -26,132 +25,111 @@ public class NQueen1
     
     
     
-    //////////////// runing that alg
+    //////////////// running the alg
     private static void algorithm()
-    {
-        int popSize = 0;
-        Chromosome thisChromo = null;
-        boolean done = false;
-
-        initializeChromosomes();
-        mutations = 0;
+    {	
+    	mutations = 0;
         nextMutation = Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
-        
-        while(!done)
+        int PopulationSize = 0;
+        Chromosome DNA = null;
+        boolean Solution = false;
+        initializeChromosomes();
+        while(!Solution)
         {
-            popSize = population.size();
-            for(int i = 0; i < popSize; i++)
+            PopulationSize = population.size();
+            for(int i = 0; i < PopulationSize; i++)
             {
-                thisChromo = population.get(i);
-                if((thisChromo.conflicts() == 0) || epoch == MAX_EPOCHS){
-                    done = true;
+                DNA = population.get(i);
+                if((DNA.conflicts() == 0)){
+                    Solution = true;
                 }
-            }
-            
-            getFitness();
-            
-            rouletteSelection();
-            
+            }            
+            SetFitness();            
+            Selection();            
             mating();
-
-            prepNextEpoch();
-            
-            epoch++;
-            // This is here simply to show the runtime status.
-            System.out.println("Epoch: " + epoch);
+            Reset();
+            Era++;
+           // current Era
+            System.out.println("Era: " + Era);
             
         }
-        
-        System.out.println("done.");
-        
-        if(epoch != MAX_EPOCHS){
-            popSize = population.size();
-            for(int i = 0; i < popSize; i++)
+        // solution found
+        System.out.println("Finished!");
+              
+            PopulationSize = population.size();
+            for(int i = 0; i < PopulationSize; i++)
             {
-                thisChromo = population.get(i);
-                if(thisChromo.conflicts() == 0){
-                    printbestSolution(thisChromo);
+                DNA = population.get(i);
+                if(DNA.conflicts() == 0){
+                    PrintSolution(DNA);
                 }
             }
-        }
-        System.out.println("Completed " + epoch + " epochs.");
-        System.out.println("Encountered " + mutations + " mutations in " + childCount + " offspring.");
-        return;
-    }
-    
-    //// fitness function 
-    
-    private static void getFitness()
-    {
-        // Lowest errors = 100%, Highest errors = 0%
-        int popSize = population.size();
-        Chromosome thisChromo = null;
-        double bestScore = 0;
-        double worstScore = 0;
-
-        // The worst score would be the one with the highest energy, best would be lowest.
-        worstScore = population.get(maximum()).conflicts();
-
-        // Convert to a weighted percentage.
-        bestScore = worstScore - population.get(minimum()).conflicts();
-
-        for(int i = 0; i < popSize; i++)
-        {
-            thisChromo = population.get(i);
-            thisChromo.fitness((worstScore - thisChromo.conflicts()) * 100.0 / bestScore);
-        }
+        // statistics 
+        System.out.println(DNA.fitness()+ " fitness");
+        System.out.println( Era + " Eras.");
+        System.out.println( mutations + " Mutations in " + Children + " Children");
         
         return;
     }
     
-    private static void rouletteSelection()
-    {
-        int j = 0;
-        int popSize = population.size();
-        double genTotal = 0.0;
-        double selTotal = 0.0;
-        int maximumToSelect = Rand.getRandomNumber(MIN_SELECT, MAX_SELECT);
-        double rouletteSpin = 0.0;
-        Chromosome thisChromo = null;
-        Chromosome thatChromo = null;
-        boolean done = false;
-
-        for(int i = 0; i < popSize; i++)
+    //fitness function     
+    private static void SetFitness()
+    {        
+        Chromosome DNA = null;
+        double HighScore = 0, LowScore = 0;
+        LowScore = population.get(maximum()).conflicts();
+        HighScore = LowScore - population.get(minimum()).conflicts();
+        for(int i = 0; i < population.size(); i++)
         {
-            thisChromo = population.get(i);
-            genTotal += thisChromo.fitness();
+        	// set fitness
+            DNA = population.get(i);
+            DNA.fitness((LowScore - DNA.conflicts()) * 100.0 / HighScore);
         }
+        return;
+    }
+    
+    private static void Selection()
+    {
+        int q = 0, PopulationSize = population.size(), maximumToSelect = Rand.getRandomNumber(MIN_SELECT, MAX_SELECT);
+        double GTotal = 0.0, CTotal = 0.0, Spin = 0.0;
+        Chromosome DNA = null;
+        Chromosome thatChromo = null;
+        boolean Solution = false;
 
-        genTotal *= 0.01;
-
-        for(int i = 0; i < popSize; i++)
+        for(int i = 0; i < PopulationSize; i++)
         {
-            thisChromo = population.get(i);
-            thisChromo.selectionProbability(thisChromo.fitness() / genTotal);
+            DNA = population.get(i);
+            GTotal += DNA.fitness();
+        }
+        GTotal *= 0.01;
+        for(int i = 0; i < PopulationSize; i++)
+        {
+            DNA = population.get(i);
+            DNA.selectionProbability(DNA.fitness() / GTotal);
         }
 
         for(int i = 0; i < maximumToSelect; i++)
         {
-            rouletteSpin = Rand.getRandomNumber(0, 99);
-            j = 0;
-            selTotal = 0;
-            done = false;
-            while(!done)
+            Spin = Rand.getRandomNumber(0, 99);
+            q = 0;
+            CTotal = 0;
+            Solution = false;
+            while(!Solution)
             {
-                thisChromo = population.get(j);
-                selTotal += thisChromo.selectionProbability();
-                if(selTotal >= rouletteSpin){
-                    if(j == 0){
-                        thatChromo = population.get(j);
-                    }else if(j >= popSize - 1){
-                        thatChromo = population.get(popSize - 1);
+                DNA = population.get(q);
+                CTotal += DNA.selectionProbability();
+                if(CTotal >= Spin){
+                    if(q == 0){
+                        thatChromo = population.get(q);
+                    }else if(q >= PopulationSize - 1){
+                        thatChromo = population.get(PopulationSize - 1);
                     }else{
-                        thatChromo = population.get(j - 1);
+                        thatChromo = population.get(q - 1);
                     }
                     thatChromo.selected(true);
-                    done = true;
+                    Solution = true;
                 }else{
-                    j++;
+                    q++;
                 }
             }
         }
@@ -161,275 +139,195 @@ public class NQueen1
 ///// mating
     private static void mating()
     {
-        int getRand = 0;
-        int parentA = 0;
-        int parentB = 0;
-        int newIndex1 = 0;
-        int newIndex2 = 0;
-        Chromosome newChromo1 = null;
-        Chromosome newChromo2 = null;
+        int getRand = 0, parentA = 0, parentB = 0, newIndex1 = 0, newIndex2 = 0;
+        Chromosome Chromosome1 = null;
+        Chromosome Chromosome2 = null;
 
         for(int i = 0; i < OFFSPRING_PER_GENERATION; i++)
         {
             parentA = chooseParent();
-            // Test probability of mating.
-            getRand =Rand.getRandomNumber(0, 100);
+            getRand = Rand.getRandomNumber(0, 100);
             if(getRand <= MATING_PROBABILITY * 100){
-                parentB = chooseParent(parentA);
-                newChromo1 = new Chromosome();
-                newChromo2 = new Chromosome();
-                population.add(newChromo1);
-                newIndex1 = population.indexOf(newChromo1);
-                population.add(newChromo2);
-                newIndex2 = population.indexOf(newChromo2);
-                
-
-                partiallyMappedCrossover(parentA, parentB, newIndex1, newIndex2);
-
-
-                if(childCount - 1 == nextMutation){
+                parentB = chooseParent();
+                Chromosome1 = new Chromosome();
+                Chromosome2 = new Chromosome();
+                population.add(Chromosome1);
+                newIndex1 = population.indexOf(Chromosome1);
+                population.add(Chromosome2);
+                newIndex2 = population.indexOf(Chromosome2);
+                Crossover(parentA, parentB, newIndex1, newIndex2);
+                if(Children - 1 == nextMutation){
                     exchangeMutation(newIndex1, 1);
-                }else if(childCount == nextMutation){
+                }else if(Children == nextMutation){
                     exchangeMutation(newIndex2, 1);
                 }
-
                 population.get(newIndex1).computeConflicts();
                 population.get(newIndex2).computeConflicts();
-
-                childCount += 2;
-
-                // Schedule next mutation.
-                if(childCount % (int)Math.round(1.0 / MUTATION_RATE) == 0){
-                    nextMutation = childCount + Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
+                Children += 2;
+                if(Children % (int)Math.round(1.0 / MUTATION_RATE) == 0){
+                    nextMutation = Children + Rand.getRandomNumber(0, (int)Math.round(1.0 / MUTATION_RATE));
                 }
             }
         } 
         return;
     }
     
-    private static void partiallyMappedCrossover(int chromA, int chromB, int child1, int child2)
+    private static void Crossover(int chromA, int chromB, int child1, int child2)
     {
-        int j = 0;
-        int item1 = 0;
-        int item2 = 0;
-        int pos1 = 0;
-        int pos2 = 0;
-        Chromosome thisChromo = population.get(chromA);
+        int j = 0, item1 = 0, item2 = 0, pos1 = 0, pos2 = 0;
+        Chromosome DNA = population.get(chromA);
         Chromosome thatChromo = population.get(chromB);
-        Chromosome newChromo1 = population.get(child1);
-        Chromosome newChromo2 = population.get(child2);
-        
-        
-        //// make it in the middle
-        
-        
+        Chromosome Chromosome1 = population.get(child1);
+        Chromosome Chromosome2 = population.get(child2);
         int crossPoint1 = 4;
         int crossPoint2 = 5;
-
-
-        // Copy Parent genes to offspring.
-        for(int i = 0; i < MAX_LENGTH; i++)
+        for(int i = 0; i < 8; i++)
         {
-            newChromo1.data(i, thisChromo.data(i));
-            newChromo2.data(i, thatChromo.data(i));
+            Chromosome1.data(i, DNA.data(i));
+            Chromosome2.data(i, thatChromo.data(i));
         }
-
         for(int i = crossPoint1; i <= crossPoint2; i++)
         {
-            // Get the two items to swap.
-            item1 = thisChromo.data(i);
+            item1 = DNA.data(i);
             item2 = thatChromo.data(i);
-
-            // Get the items//  positions in the offspring.
-            for(j = 0; j < MAX_LENGTH; j++)
+            for(j = 0; j < 8; j++)
             {
-                if(newChromo1.data(j) == item1){
+                if(Chromosome1.data(j) == item1){
                     pos1 = j;
-                }else if(newChromo1.data(j) == item2){
+                }else if(Chromosome1.data(j) == item2){
                     pos2 = j;
                 }
-            } // j
-
-            // Swap them.
+            } 
             if(item1 != item2){
-                newChromo1.data(pos1, item2);
-                newChromo1.data(pos2, item1);
+                Chromosome1.data(pos1, item2);
+                Chromosome1.data(pos2, item1);
             }
-
-            // Get the items//  positions in the offspring.
-            for(j = 0; j < MAX_LENGTH; j++)
+            for(j = 0; j < 8; j++)
             {
-                if(newChromo2.data(j) == item2){
+                if(Chromosome2.data(j) == item2){
                     pos1 = j;
-                }else if(newChromo2.data(j) == item1){
+                }else if(Chromosome2.data(j) == item1){
                     pos2 = j;
                 }
-            } // j
-
-            // Swap them.
-            if(item1 != item2){
-                newChromo2.data(pos1, item1);
-                newChromo2.data(pos2, item2);
             }
-
-        } // i
+            if(item1 != item2){
+                Chromosome2.data(pos1, item1);
+                Chromosome2.data(pos2, item2);
+            }
+        }
         return;
     }
 
     private static void exchangeMutation(final int index, final int exchanges)
     {
-        int i =0;
-        int tempData = 0;
-        Chromosome thisChromo = null;
-        int gene1 = 0;
-        int gene2 = 0;
-        boolean done = false;
-        
-        thisChromo = population.get(index);
-
-        while(!done)
+        int i =0 , tempData = 0, gene1 = 0, gene2 = 0;
+        Chromosome DNA = null;
+        boolean Solution = false;        
+        DNA = population.get(index);
+        while(!Solution)
         {
-            gene1 = Rand.getRandomNumber(0, MAX_LENGTH - 1);
-            gene2 = Rand.getExclusiveRandomNumber(MAX_LENGTH - 1, gene1);
-
-            // Exchange the chosen genes.
-            tempData = thisChromo.data(gene1);
-            thisChromo.data(gene1, thisChromo.data(gene2));
-            thisChromo.data(gene2, tempData);
-
+            gene1 = Rand.getRandomNumber(0, 8 - 1);
+            gene2 = Rand.getExclusiveRandomNumber(8 - 1, gene1);
+            tempData = DNA.data(gene1);
+            DNA.data(gene1, DNA.data(gene2));
+            DNA.data(gene2, tempData);
             if(i == exchanges){
-                done = true;
+                Solution = true;
             }
             i++;
         }
         mutations++;
         return;
     }
-    //// change to 1 choose parent if possible
     private static int chooseParent()
     {
-        // Overloaded function, see also "chooseparent(ByVal parentA As Integer)".
         int parent = 0;
-        Chromosome thisChromo = null;
-        boolean done = false;
-
-        while(!done)
+        Chromosome DNA = null;
+        boolean Solution = false;
+        while(!Solution)
         {
-            // Randomly choose an eligible parent.
             parent = Rand.getRandomNumber(0, population.size() - 1);
-            thisChromo = population.get(parent);
-            if(thisChromo.selected() == true){
-                done = true;
+            DNA = population.get(parent);
+            if(DNA.selected() == true){
+                Solution = true;
             }
         }
-
         return parent;
     }
-    
 
-    private static int chooseParent(final int parentA)
+    private static void Reset()
     {
-        // Overloaded function, see also "chooseparent()".
-        int parent = 0;
-        Chromosome thisChromo = null;
-        boolean done = false;
-
-        while(!done)
+        int PopulationSize = 0;
+        Chromosome DNA = null;
+        PopulationSize = population.size();
+        for(int i = 0; i < PopulationSize; i++)
         {
-            // Randomly choose an eligible parent.
-            parent = Rand.getRandomNumber(0, population.size() - 1);
-            if(parent != parentA){
-                thisChromo = population.get(parent);
-                if(thisChromo.selected() == true){
-                    done = true;
-                }
-            }
-        }
-
-        return parent;
-    }
-    
-    private static void prepNextEpoch()
-    {
-        int popSize = 0;
-        Chromosome thisChromo = null;
-
-        // Reset flags for selected individuals.
-        popSize = population.size();
-        for(int i = 0; i < popSize; i++)
-        {
-            thisChromo = population.get(i);
-            thisChromo.selected(false);
+            DNA = population.get(i);
+            DNA.selected(false);
         }
         return;
     }
     
-    private static void printbestSolution(Chromosome bestSolution)
+    private static void PrintSolution(Chromosome bestSolution)
     {
-        String board[][] = new String[MAX_LENGTH][MAX_LENGTH];
-        
-        // Clear the board.
-        for(int x = 0; x < MAX_LENGTH; x++)
+        String board[][] = new String[8][8];
+
+        for(int x = 0; x < 8; x++)
         {
-            for(int y = 0; y < MAX_LENGTH; y++)
+            for(int y = 0; y < 8; y++)
             {
-                board[x][y] = "";
+                board[x][y] = "N";
             }
         }
 
-        for(int x = 0; x < MAX_LENGTH; x++)
+        for(int x = 0; x < 8; x++)
         {
             board[x][bestSolution.data(x)] = "Q";
         }
 
         // Display the board.
         System.out.println("Board:");
-        for(int y = 0; y < MAX_LENGTH; y++)
+        for(int y = 0; y < 8; y++)
         {
-            for(int x = 0; x < MAX_LENGTH; x++)
+            for(int x = 0; x < 8; x++)
             {
                 if(board[x][y] == "Q"){
-                    System.out.print("Q ");
+                    System.out.print("|Q|");
                 }else{
-                    System.out.print(". ");
+                    System.out.print("[ ]");
                 }
             }
             System.out.print("\n");
         }
-
         return;
     }
-    
-    /////////// randoms in a new class
 
-    
     private static int minimum()
     {
         // Returns an array index.
-        int popSize = 0;
-        Chromosome thisChromo = null;
+        int PopulationSize = 0;
+        Chromosome DNA = null;
         Chromosome thatChromo = null;
         int winner = 0;
         boolean foundNewWinner = false;
-        boolean done = false;
-
-        while(!done)
+        boolean Solution = false;
+        while(!Solution)
         {
             foundNewWinner = false;
-            popSize = population.size();
-            for(int i = 0; i < popSize; i++)
+            PopulationSize = population.size();
+            for(int i = 0; i < PopulationSize; i++)
             {
                 if(i != winner){             // Avoid self-comparison.
-                    thisChromo = population.get(i);
+                    DNA = population.get(i);
                     thatChromo = population.get(winner);
-                    if(thisChromo.conflicts() < thatChromo.conflicts()){
+                    if(DNA.conflicts() < thatChromo.conflicts()){
                         winner = i;
                         foundNewWinner = true;
                     }
                 }
             }
             if(foundNewWinner == false){
-                done = true;
+                Solution = true;
             }
         }
         return winner;
@@ -438,30 +336,29 @@ public class NQueen1
     private static int maximum()
     {
         // Returns an array index.
-        int popSize = 0;
-        Chromosome thisChromo = null;
+        int PopulationSize = 0;
+        Chromosome DNA = null;
         Chromosome thatChromo = null;
         int winner = 0;
         boolean foundNewWinner = false;
-        boolean done = false;
-
-        while(!done)
+        boolean Solution = false;
+        while(!Solution)
         {
             foundNewWinner = false;
-            popSize = population.size();
-            for(int i = 0; i < popSize; i++)
+            PopulationSize = population.size();
+            for(int i = 0; i < PopulationSize; i++)
             {
                 if(i != winner){             // Avoid self-comparison.
-                    thisChromo = population.get(i);
+                    DNA = population.get(i);
                     thatChromo = population.get(winner);
-                    if(thisChromo.conflicts() > thatChromo.conflicts()){
+                    if(DNA.conflicts() > thatChromo.conflicts()){
                         winner = i;
                         foundNewWinner = true;
                     }
                 }
             }
             if(foundNewWinner == false){
-                done = true;
+                Solution = true;
             }
         }
         return winner;
@@ -472,20 +369,14 @@ public class NQueen1
         int shuffles = 0;
         Chromosome newChromo = null;
         int chromoIndex = 0;
-
         for(int i = 0; i < START_SIZE; i++)
         {
             newChromo = new Chromosome();
             population.add(newChromo);
             chromoIndex = population.indexOf(newChromo);
-
-            // Randomly choose the number of shuffles to perform.
             shuffles = Rand.getRandomNumber(MINIMUM_SHUFFLES, MAXIMUM_SHUFFLES);
-
             exchangeMutation(chromoIndex, shuffles);
-
             population.get(chromoIndex).computeConflicts();
-
         }
         return;
     }

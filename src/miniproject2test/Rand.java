@@ -35,7 +35,7 @@ public class Rand {
             {
                 done = true;
                 getRand = (int)Math.round((high - low) * new Random().nextDouble() + low);
-                for(int i = 0; i < except.length; i++) //UBound(except)
+                for(int i = 0; i < except.length; i++)
                 {
                     if(getRand == except[i]){
                         done = false;
@@ -44,7 +44,7 @@ public class Rand {
             }
             return getRand;
         }else{
-            return high; // or low (it doesn't matter).
+            return low;
         }
     }
 
